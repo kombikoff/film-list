@@ -17,44 +17,103 @@ P.S. Здесь есть несколько вариантов решения з
 
 'use strict';
 
-const movieDB = {
-    movies: [
-        "Логан",
-        "Лига справедливости",
-        "Ла-ла лэнд",
-        "Одержимость",
-        "Скотт Пилигрим против..."
-    ]
-};
+document.addEventListener('DOMContentLoaded', () => {
+    const movieDB = {
+        movies: [
+            "Логан",
+            "Лига справедливости",
+            "Ла-ла лэнд",
+            "Одержимость",
+            "Скотт Пилигрим против..."
+        ]
+    };
+    
+    
+    const adv = document.querySelectorAll('.promo__adv img'),
+          poster = document.querySelector('.promo__bg'),
+          genre = poster.querySelector('.promo__genre'),
+          movieList = document.querySelector('.promo__interactive-list'),
+          addForm = document.querySelector('form.add'),
+          addInput = addForm.querySelector('.adding__input'),
+          checkbox = addForm.querySelector('[type="checkbox"]');
 
+    addForm.addEventListener('submit', (event) => {
+        event.preventDefault();
 
-const adv = document.querySelectorAll('.promo__adv img'),
-      poster = document.querySelector('.promo__bg'),
-      genre = poster.querySelector('.promo__genre'),
-      movieList = document.querySelector('.promo__interactive-list');
+        let newFilm = addInput.value;
+        const favorite = checkbox.checked;
 
-// Удаление рекламного блока в правой части страницы
-adv.forEach(item => {
-    item.remove();
+        // Проверяем наличие текста в инпуте. Если пустая строка - submit не сработает.
+        if (newFilm) {
+            // Если название фильма более 21 символа, обрезаем и ставим "..."
+            if (newFilm.length > 21) {
+                newFilm = `${newFilm.substring(0, 22)}...`;
+            }
+            // Выводить сообщение об успешном добавлении фильма в избранное, если стоит галочка
+            if (favorite) {
+                console.log('Добавляем любимый фильм');
+            }
+
+            // Добавляем новый фильм в базу данных
+            movieDB.movies.push(newFilm);
+            // Формирование нумерованного списка фильмов на странице на основании данных из этого JS файла, отсортированных по алфавиту 
+            sortArr(movieDB.movies);
+            // Строим заново обновленный список фильмов
+            createMovieList(movieDB.movies, movieList);
+            // Очищаем форму
+        }
+
+        event.target.reset();
+    });
+    
+    // Удаление рекламного блока в правой части страницы
+    const deleteAdv = (arr) => {
+        arr.forEach(item => {
+            item.remove();
+        });
+    };
+
+    const makeChanges = () => {
+        // Изменение жанра фильма с "комедия" на "драма"
+        genre.textContent = 'драма';
+        
+        // Изменение заднего фона постера с фильмом на изображение "bg.jpg".
+        poster.style.backgroundImage = 'url("./img/bg.jpg")';
+    };
+
+    const sortArr = (arr) => {
+        arr.sort();
+    };
+
+    function createMovieList(films, parent) {
+        // Удаление первоначального списка фильмов
+        parent.innerHTML = "";
+        sortArr(films);
+        
+        films.forEach((film, i) => {
+            parent.innerHTML += `
+                <li class="promo__interactive-item">${i + 1} ${film}
+                    <div class="delete"></div>
+                </li>
+            `;
+        });
+
+        // Получаем по классу все корзины для удаления фильма из списка
+        document.querySelectorAll('.delete').forEach((btn, i) => {
+            btn.addEventListener('click', () => {
+                // Удаляем родительский элемент корзины и она удалится вместе с ним
+                btn.parentElement.remove();
+                // Удаляем i-ый фильм из нашей базы фильмов
+                movieDB.movies.splice(i, 1);
+
+               // Пересобираем нумерацию фильмов на сайте посредством рекурсии после удаления определенного их количества
+               createMovieList(films, parent); 
+            });
+        });
+
+    };
+
+    deleteAdv(adv);
+    makeChanges();
+    createMovieList(movieDB.movies, movieList);
 });
-
-// Изменение жанра фильма с "комедия" на "драма"
-genre.textContent = 'драма';
-
-// Изменение заднего фона постера с фильмом на изображение "bg.jpg".
-poster.style.backgroundImage = 'url("./img/bg.jpg")';
-
-// Удаление первоначального списка фильмов
-movieList.innerHTML = "";
-
-// Формирование нумерованного списка фильмов на странице на основании данных из этого JS файла, отсортированных по алфавиту 
-movieDB.movies.sort();
-
-movieDB.movies.forEach((film, i) => {
-    movieList.innerHTML += `
-        <li class="promo__interactive-item">${i + 1} ${film}
-            <div class="delete"></div>
-        </li>
-    `;
-});
-
